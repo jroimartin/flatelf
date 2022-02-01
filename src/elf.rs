@@ -1,49 +1,9 @@
 //! Minimal ELF parser focused on creating flat binaries.
 
-use std::fmt;
-use std::io::{self, Cursor, Read, Seek, SeekFrom};
+use std::io::{Cursor, Read, Seek, SeekFrom};
 
 use crate::endian_read::{EndianRead, FromBytes};
-
-/// An ELF parsing error.
-pub enum Error {
-    /// Invalid ELF magic.
-    InvalidMagic,
-
-    /// Invalid ELF CPU word size.
-    InvalidSize,
-
-    /// Invalid ELF endianness.
-    InvalidEndian,
-
-    /// Invalid ELF version.
-    InvalidVersion,
-
-    /// Invalid file or memory offset.
-    InvalidOffset,
-
-    /// IO operation error.
-    Io(io::Error),
-}
-
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Error {
-        Error::Io(err)
-    }
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Error::InvalidMagic => write!(f, "invalid ELF magic"),
-            Error::InvalidSize => write!(f, "invalid ELF CPU word size"),
-            Error::InvalidEndian => write!(f, "invalid ELF endianness"),
-            Error::InvalidVersion => write!(f, "invalid ELF version"),
-            Error::InvalidOffset => write!(f, "invalid file or memory offset"),
-            Error::Io(err) => write!(f, "IO error: {}", err),
-        }
-    }
-}
+use crate::error::Error;
 
 /// CPU word size.
 enum Size {
@@ -90,8 +50,7 @@ impl TryFrom<u8> for Endian {
 /// Size of the ELF identification header.
 const EIDENT_SIZE: usize = 0x10;
 
-/// ELF header. This struct only contains the fields need to parse the program
-/// headers.
+/// ELF header.
 struct Ehdr {
     /// Identifies the object file type.
     _etype: u16,
@@ -204,8 +163,8 @@ pub struct Elf {
 }
 
 impl Elf {
-    /// Returns a structure representing a parsed ELF. The contents of `data`
-    /// must correspond with an ELF file.
+    /// Returns a structure representing a parsed ELF. `data` must be a valid
+    /// ELF file.
     pub fn new<B: AsRef<[u8]>>(data: &B) -> Result<Elf, Error> {
         Parser::new(data)?.parse()
     }
@@ -234,8 +193,7 @@ struct Parser {
 }
 
 impl Parser {
-    /// Returns a new ELF parser. The contents of `data` must correspond with
-    /// an ELF file.
+    /// Returns a new ELF parser. `data` must be a valid ELF file.
     fn new<B: AsRef<[u8]>>(data: &B) -> Result<Parser, Error> {
         let mut data = Cursor::new(data.as_ref().to_vec());
 
@@ -244,7 +202,7 @@ impl Parser {
 
         // Check that ELF's magic is "\x7fELF".
         if &eident[..0x4] != b"\x7fELF" {
-            return Err(Error::InvalidMagic);
+            return Err(Error::InvalidElfMagic);
         }
 
         let size = eident[0x4].try_into()?;
@@ -252,12 +210,12 @@ impl Parser {
 
         // Check that ELF's version is 1 (current).
         if eident[0x6] != 1 {
-            return Err(Error::InvalidVersion);
+            return Err(Error::InvalidElfVersion);
         }
 
-        // The rest of the fields in the ELF identifier are not parsed. They
-        // are not used and do not need to be checked. So, the parser can just
-        // be returned.
+        // The rest of the fields in the ELF identification are not parsed.
+        // They are not used and do not need to be checked. So, the parser can
+        // just be returned.
         Ok(Parser { data, size, endian })
     }
 
@@ -268,7 +226,7 @@ impl Parser {
 
         // Version must be 1 for the original version of ELF.
         if ehdr.version != 1 {
-            return Err(Error::InvalidVersion);
+            return Err(Error::InvalidElfVersion);
         }
 
         let mut phdrs = Vec::new();
