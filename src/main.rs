@@ -114,15 +114,17 @@ fn serve<P: AsRef<Path>, A: net::ToSocketAddrs>(
             Ok(stream) => {
                 let input_file = input_file.as_ref().to_path_buf();
                 thread::spawn(move || {
-                    if let Err(err) = handle_connection(stream, input_file) {
-                        eprintln!("Connection handler error: {}", err);
-                    }
+                    handle_connection(stream, input_file).unwrap_or_else(
+                        |err| {
+                            eprintln!("Connection handler error: {}", err);
+                        },
+                    )
                 });
             }
             Err(err) => {
                 eprintln!("TCP error: {:?}", err);
             }
-        };
+        }
     }
 
     Ok(())
