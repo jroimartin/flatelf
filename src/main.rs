@@ -214,7 +214,7 @@ fn generate_flatelf<P: AsRef<Path>>(input_file: P) -> Result<Vec<u8>, Error> {
     flatelf.extend(b"FLATELF1");
     flatelf.extend(&elf.entry().to_le_bytes());
     flatelf.extend(&base_vaddr.to_le_bytes());
-    flatelf.extend(&(flatbin.len() as u64).to_le_bytes());
+    flatelf.extend(&u64::try_from(flatbin_size)?.to_le_bytes());
     flatelf.extend(&flatbin);
 
     Ok(flatelf)
