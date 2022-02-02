@@ -51,7 +51,7 @@ fn write_file<P: AsRef<Path>>(
     let flatelf = FlatElf::new(&data)?.flatelf()?;
 
     println!(
-        "Writing {} bytes to {}",
+        "Writing {} bytes into {}",
         flatelf.len(),
         output_file.as_ref().display()
     );
