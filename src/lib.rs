@@ -102,6 +102,16 @@ impl FlatElf {
         Ok(flatelf)
     }
 
+    /// Returns the entry point of the flat binary.
+    pub fn entry(&self) -> u64 {
+        self.entry
+    }
+
+    /// Returns the base virtual address of the flat binary.
+    pub fn base_vaddr(&self) -> u64 {
+        self.base_vaddr
+    }
+
     /// Returns a flat binary.
     pub fn flatbin(&self) -> Vec<u8> {
         self.flatbin.clone()
