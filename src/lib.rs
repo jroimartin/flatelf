@@ -1,6 +1,5 @@
 //! This crate allows to generate a flat binary with the memory representation
-//! of an ELF. It also allows to generate a FLATELF file with the following
-//! format:
+//! of an ELF. It also allows to generate a FLATELF with the following format:
 //!
 //! ```text
 //! ["FLATELF1"][entry][base_vaddr][flatbin_size][flatbin]
@@ -25,7 +24,7 @@ pub struct FlatElf {
 }
 
 impl FlatElf {
-    /// Returns a new FlatElf. `data` must be a valid ELF file.
+    /// Returns a new `FlatElf`. `data` must be a valid ELF file.
     pub fn new<B: AsRef<[u8]>>(data: &B) -> Result<FlatElf, Error> {
         // Get LOAD program headers.
         let elf = elf::Elf::new(&data)?;
