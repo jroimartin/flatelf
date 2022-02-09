@@ -13,7 +13,7 @@ an ELF. It also allows to generate a FLATELF with the following format:
 
 The flatelf command takes an ELF file as input and generates a flat binary.
 
-It supports the following output modes: 
+It supports the following output modes:
 
 - **flatelf**: the input ELF is converted into a FLATELF and written to disk.
 - **flatbin**: the input ELF is converted into a flat binary and written to
