@@ -23,17 +23,25 @@ fn main() {
     let args = env::args().collect::<Vec<String>>();
 
     if args.len() != 3 {
-        eprintln!("usage: flatelf <input> [tcp:]<output>");
-        process::exit(2);
+        usage();
     }
 
     let input = &args[1];
-    let output = &args[2];
+    let mode_output = &args[2];
 
-    let result = if let Some(listen_addr) = output.strip_prefix("tcp:") {
-        serve(Path::new(input), listen_addr)
-    } else {
-        write_file(Path::new(input), Path::new(output))
+    let parts = mode_output.split(':').collect::<Vec<&str>>();
+    if parts.len() != 2 {
+        usage();
+    }
+
+    let mode = parts[0];
+    let output = parts[1];
+
+    let result = match mode {
+        "flatelf" => write_flatelf(Path::new(input), Path::new(output)),
+        "flatbin" => write_flatbin(Path::new(input), Path::new(output)),
+        "tcp" => serve(Path::new(input), output),
+        _ => usage(),
     };
 
     result.unwrap_or_else(|err| {
@@ -42,25 +50,33 @@ fn main() {
     });
 }
 
-/// Write output to disk.
-fn write_file<P: AsRef<Path>>(
+/// Writes flatelf to disk.
+fn write_flatelf<P: AsRef<Path>>(
     input_file: P,
     output_file: P,
 ) -> Result<(), Error> {
     let data = fs::read(input_file)?;
     let flatelf = FlatElf::new(&data)?.flatelf()?;
 
-    println!(
-        "Writing {} bytes into {}",
-        flatelf.len(),
-        output_file.as_ref().display()
-    );
-
     fs::write(output_file, flatelf)?;
     Ok(())
 }
 
-/// Serve output via TCP socket.
+/// Writes flatbin to disk and prints "base_vaddr entry" to stdou.
+fn write_flatbin<P: AsRef<Path>>(
+    input_file: P,
+    output_file: P,
+) -> Result<(), Error> {
+    let data = fs::read(input_file)?;
+    let flatelf = FlatElf::new(&data)?;
+
+    println!("{:#x} {:#x}", flatelf.base_vaddr(), flatelf.entry(),);
+
+    fs::write(output_file, flatelf.flatbin())?;
+    Ok(())
+}
+
+/// Serves output via TCP socket.
 fn serve<P: AsRef<Path>, A: net::ToSocketAddrs>(
     input_file: P,
     listen_addr: A,
@@ -90,7 +106,7 @@ fn serve<P: AsRef<Path>, A: net::ToSocketAddrs>(
     Ok(())
 }
 
-/// Handle incoming connection.
+/// Handles incoming connection.
 fn handle_connection<P: AsRef<Path>>(
     mut stream: net::TcpStream,
     input_file: P,
@@ -107,4 +123,16 @@ fn handle_connection<P: AsRef<Path>>(
     stream.write_all(&flatelf)?;
     stream.shutdown(net::Shutdown::Both)?;
     Ok(())
+}
+
+/// Prints usage message to stderr and exit with return code 2.
+fn usage() -> ! {
+    eprintln!(
+        r#"usage: flatelf <input> <mode:output>
+modes:
+  flatelf:/path/to/file
+  flatbin:/path/to/file
+  tcp:127.0.0.1:1234"#
+    );
+    process::exit(2);
 }
