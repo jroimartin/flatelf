@@ -5,7 +5,11 @@
 //! address.
 //!
 //! ```text
-//! usage: flatelf <input> [tcp:]<output>
+//! usage: flatelf <input> <mode:output>
+//! modes:
+//!   flatelf:/path/to/file
+//!   flatbin:/path/to/file
+//!   tcp:127.0.0.1:1234
 //! ```
 
 use std::env;
