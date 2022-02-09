@@ -70,7 +70,7 @@ fn write_flatbin<P: AsRef<Path>>(
     let data = fs::read(input_file)?;
     let flatelf = FlatElf::new(&data)?;
 
-    println!("{:#x} {:#x}", flatelf.base_vaddr(), flatelf.entry(),);
+    println!("{:#x} {:#x}", flatelf.base_vaddr(), flatelf.entry());
 
     fs::write(output_file, flatelf.flatbin())?;
     Ok(())
