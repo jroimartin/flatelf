@@ -1,8 +1,13 @@
-//! The flatelf command takes an ELF file as input and generates a FLATELF. It
-//! supports two output modes: file and TCP. In file mode, the output is
-//! written into the specified path. In TCP mode, the input file is read with
-//! every connection and the output FLATELF is served at the specified TCP
-//! address.
+//! The flatelf command takes an ELF file as input and generates a flat binary.
+//!
+//! It supports the following output modes:
+//!
+//! - flatelf: the input ELF is converted into a FLATELF and written to disk.
+//! - flatbin: the input ELF is converted into a flat binary and written to
+//!   disk. Its base address (hex), entrypoint (hex) and size (dec) are print
+//!   to stdout for easy parsing.
+//! - tcp: the input file is read with every connection and converted into a
+//!   FLATELF which is served at the specified TCP address.
 //!
 //! ```text
 //! usage: flatelf <input> <mode:output>
