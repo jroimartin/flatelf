@@ -66,7 +66,8 @@ fn write_flatelf<P: AsRef<Path>>(
     Ok(())
 }
 
-/// Writes flatbin to disk and prints "base_vaddr entry" to stdou.
+/// Writes flatbin to disk and prints its base address (hex), entry point (hex)
+/// and size (dec) to stdout.
 fn write_flatbin<P: AsRef<Path>>(
     input_file: P,
     output_file: P,
@@ -74,9 +75,16 @@ fn write_flatbin<P: AsRef<Path>>(
     let data = fs::read(input_file)?;
     let flatelf = FlatElf::new(&data)?;
 
-    println!("{:#x} {:#x}", flatelf.base_vaddr(), flatelf.entry());
+    let flatbin = flatelf.flatbin();
 
-    fs::write(output_file, flatelf.flatbin())?;
+    println!(
+        "{:#x} {:#x} {}",
+        flatelf.base_vaddr(),
+        flatelf.entry(),
+        flatbin.len()
+    );
+
+    fs::write(output_file, flatbin)?;
     Ok(())
 }
 

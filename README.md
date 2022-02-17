@@ -17,8 +17,8 @@ It supports the following output modes:
 
 - **flatelf**: the input ELF is converted into a FLATELF and written to disk.
 - **flatbin**: the input ELF is converted into a flat binary and written to
-  disk. Its base virtual address and entrypoint are print to stdout for easy
-  parsing.
+  disk. Its base address (hex), entrypoint (hex) and size (dec) are print to
+  stdout for easy parsing.
 - **tcp**: the input file is read with every connection and converted into a
   FLATELF which is served at the specified TCP address.
 
