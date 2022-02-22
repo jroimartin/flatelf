@@ -1,9 +1,5 @@
 //! This crate allows to generate a flat binary with the memory representation
-//! of an ELF. It also allows to generate a FLATELF with the following format:
-//!
-//! ```text
-//! ["FLATELF1"][entry][base_vaddr][flatbin_size][flatbin]
-//! ```
+//! of an ELF.
 
 mod elf;
 mod endian_read;
@@ -11,7 +7,7 @@ pub mod error;
 
 use error::Error;
 
-/// Represents a FLATELF.
+/// Represents a flat binary.
 pub struct FlatElf {
     /// Entry point of the flat binary.
     entry: u64,
@@ -89,17 +85,6 @@ impl FlatElf {
             base_vaddr,
             flatbin,
         })
-    }
-
-    /// Returns a FLATELF.
-    pub fn flatelf(&self) -> Result<Vec<u8>, Error> {
-        let mut flatelf = Vec::new();
-        flatelf.extend(b"FLATELF1");
-        flatelf.extend(self.entry.to_le_bytes());
-        flatelf.extend(self.base_vaddr.to_le_bytes());
-        flatelf.extend(u64::try_from(self.flatbin.len())?.to_le_bytes());
-        flatelf.extend(&self.flatbin);
-        Ok(flatelf)
     }
 
     /// Returns the entry point of the flat binary.
